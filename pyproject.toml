@@ -1,0 +1,30 @@
+[project]
+name = "aos-auth"
+version = "0.3.0"
+description = "AOS identity engine SDK for Python backends: verify session tokens, check permissions, manage users; FastAPI and Django helpers."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+dependencies = ["httpx>=0.27", "cryptography>=42"]
+
+[project.urls]
+Homepage = "https://github.com/flash-softeware/aos-python"
+Issues = "https://github.com/flash-softeware/aos-python/issues"
+
+[project.optional-dependencies]
+fastapi = ["fastapi>=0.110"]
+django = ["django>=4.2"]
+test = ["pytest>=8", "pytest-asyncio>=0.23", "fastapi>=0.110"]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aos_auth"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = ["integration: needs a running engine (sdk/scripts/with-engine.sh)"]
