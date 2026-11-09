@@ -160,3 +160,54 @@ def test_fastapi_dependencies():
     assert r.status_code == 403 and r.json()["detail"]["code"] == "no_matching_grant"
     r = http.post("/api/aos/can", headers=bearer, json={"permissions": ["invoice.read", "invoice.refund", 3]})
     assert r.json() == {"results": {"invoice.read": True, "invoice.refund": False}}
+
+
+def test_download_engine(tmp_path, monkeypatch):
+    import hashlib
+    import http.server
+    import io as _io
+    import tarfile
+    import threading
+
+    from aos_auth import local
+
+    if local.sys.platform == "win32":
+        pytest.skip("tar.gz release")
+    os_name, arch = local._target()
+    body = b"#!/bin/sh\necho engine\n"
+    buf = _io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:gz") as t:
+        info = tarfile.TarInfo("./aos"); info.size = len(body); info.mode = 0o755
+        t.addfile(info, _io.BytesIO(body))
+    archive = buf.getvalue()
+    asset = f"aos_v9.9.9_{os_name}_{arch}.tar.gz"
+    state = {"good": False, "hits": 0}
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def log_message(self, *a):
+            pass
+
+        def do_GET(self):
+            state["hits"] += 1
+            if self.path == "/v9.9.9/checksums.txt":
+                out = f"{hashlib.sha256(archive).hexdigest()}  {asset}\n".encode()
+            elif self.path == "/v9.9.9/" + asset:
+                out = archive if state["good"] else archive + b"\0"
+            else:
+                self.send_response(404); self.end_headers(); return
+            self.send_response(200); self.end_headers(); self.wfile.write(out)
+
+    srv = http.server.HTTPServer(("127.0.0.1", 0), H)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    monkeypatch.setenv("AOSCTL_RELEASES_URL", f"http://127.0.0.1:{srv.server_port}")
+    monkeypatch.setenv("AOSCTL_CACHE_DIR", str(tmp_path))
+    try:
+        with pytest.raises(RuntimeError, match="checksum"):
+            local.download_engine("v9.9.9")
+        state["good"] = True
+        path = local.download_engine("v9.9.9")
+        assert path.read_bytes() == body
+        hits = state["hits"]
+        assert local.download_engine("v9.9.9") == path and state["hits"] == hits
+    finally:
+        srv.shutdown()

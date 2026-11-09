@@ -10,7 +10,7 @@ import httpx
 from .errors import AosError
 from .token import Claims, KeyCache, check, parse_header
 
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 ROOT = {"type": "tenant", "id": "root"}
 
 

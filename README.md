@@ -56,6 +56,20 @@ event = verify_webhook(secret, request.headers["X-AOS-Signature"], raw_body)
 
 Tokens are checked locally against the engine's public keys, fetched once and cached. A deny is an answer (`allowed: False` with a `reason`), not an error. Engine errors are `AosError` with a stable `code`.
 
+## Your own database, no auth server to deploy
+
+`start_local` runs the engine beside your app: the SDK downloads the engine release it is tested with (or uses `AOS_ENGINE`), starts it with your Postgres, and stops it with your process.
+
+```python
+from aos_auth.local import start_local
+
+local = start_local(database_url=os.environ["DATABASE_URL"], master_key=os.environ["AOS_MASTER_KEY"],
+                    app_url="https://shop.example.com")
+app.mount("/aos", local.asgi())          # the browser's routes go to the engine
+auth = AosAuth(local.async_client())     # the same helpers as with the hosted service
+# In the browser: url = "https://shop.example.com/aos", publishableKey = local.publishable_key
+```
+
 ## Develop
 
 ```sh
