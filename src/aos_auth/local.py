@@ -30,7 +30,7 @@ from typing import Any
 
 from .client import Aos, AsyncAos
 
-ENGINE_VERSION = "v0.4.0"
+ENGINE_VERSION = "v0.4.1"
 """The engine release this SDK is tested with."""
 
 
