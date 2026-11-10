@@ -77,4 +77,4 @@ uv venv .venv && uv pip install --python .venv/bin/python -e '.[test]'
 .venv/bin/python -m pytest -m "not integration"
 ```
 
-Source and issues: https://github.com/flash-softeware/aos-python
+Source and issues: https://github.com/flash-software-technology/aos-python

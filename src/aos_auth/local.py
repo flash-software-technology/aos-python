@@ -30,7 +30,7 @@ from typing import Any
 
 from .client import Aos, AsyncAos
 
-ENGINE_VERSION = "v0.4.1"
+ENGINE_VERSION = "v0.5.0"
 """The engine release this SDK is tested with."""
 
 
@@ -60,7 +60,7 @@ def download_engine(version: str = ENGINE_VERSION) -> Path:
     path = _cache_dir() / "engine" / version / exe
     if path.exists():
         return path
-    base = os.environ.get("AOSCTL_RELEASES_URL", "https://github.com/flash-softeware/aos/releases/download").rstrip("/") + f"/{version}/"
+    base = os.environ.get("AOSCTL_RELEASES_URL", "https://github.com/flash-software-technology/aos/releases/download").rstrip("/") + f"/{version}/"
     asset = f"aos_{version}_{os_name}_{arch}" + (".zip" if os_name == "windows" else ".tar.gz")
 
     def get(url: str) -> bytes:
